@@ -1,0 +1,99 @@
+--[SQL] 250117 연습문제
+
+--1. 직원의 직무 변경 기록과 상태
+--직원의 직무 변경 기록에서 직원의 이름과 JOB_ID를 표시하고, 직무 변경이 없는 경우 'No Change'로 표시하세요.
+SELECT E.NAME, NVL(JH.JOB_ID, 'No Change') JOB_ID
+FROM EMPLOYEES E
+LEFT OUTER JOIN JOB_HISTORY JH
+  ON E.EMPLOYEE_ID = JH.EMPLOYEE_ID;
+
+--2. 특정 패턴의 직원과 부서 정보 조회
+--직원 이름에 "Employee 1"이라는 문자열이 포함된 데이터를 조회하세요. 해당 직원의 급여가 NULL인 경우 0으로 표시하고, 소속 부서 이름도 함께 출력합니다. 결과는 부서 이름 순으로 정렬하세요.
+SELECT E.NAME, NVL(E.SALARY, 0) SALARY, D.DEPARTMENT_NAME
+FROM EMPLOYEES E
+LEFT OUTER JOIN DEPARTMENTS D
+  ON E.NAME LIKE '%Employee 1%'
+ORDER BY D.DEPARTMENT_NAME;
+
+--3. 최근 6개월 거래 내역 조회
+--최근 6개월 동안 발생한 거래의 계좌ID와 거래 금액, 거래일, 고객ID, 고객명을 조회하세요. (단, 거래일은 년-월-일 시:분:초 형식으로 출력)
+SELECT
+  T.ACCOUNT_ID,
+  T.AMOUNT,
+  TO_CHAR(T.TRANSACTION_DATE, 'YY-MM-DD HH24:MI:SS') TRANSACTION_DATE,
+  C.CUSTOMER_ID,
+  C.NAME
+FROM TRANSACTIONS T, ACCOUNTS A, CUSTOMERS C
+WHERE T.ACCOUNT_ID = A.ACCOUNT_ID
+  AND A.CUSTOMER_ID = C.CUSTOMER_ID
+  AND MONTHS_BETWEEN(SYSDATE, T.TRANSACTION_DATE) <= 6;
+
+--4. 특정 부서의 직무별 직원 수
+--"Department 3", "Department 4", "Department 5", "Department 6" 부서에 속하는 직원들의 직무별 직원 수를 조회하세요.
+SELECT E.JOB_ID, COUNT(*) COUNT
+FROM EMPLOYEES E, DEPARTMENTS D
+WHERE E.DEPARTMENT_ID = D.DEPARTMENT_ID
+  AND D.DEPARTMENT_NAME IN ('Department 3', 'Department 4', 'Department 5', 'Department 6')
+GROUP BY E.JOB_ID;
+
+--5. 계좌 유형별 평균 잔액
+--계좌 유형별 평균 잔액을 조회한 뒤 버림하여 소수점 아래 둘째 자리까지 출력하세요. (평균 잔액으로 내림차순, 출력 컬럼은 계좌 유형, 평균 잔액)
+SELECT ACCOUNT_TYPE, TRUNC(AVG(BALANCE), 2) AVG_BALANCE
+FROM ACCOUNTS
+GROUP BY ACCOUNT_TYPE
+ORDER BY AVG(BALANCE) DESC;
+
+--6. 각 계좌별 거래 횟수
+--각 계좌의 거래 횟수를 조회하고 거래 횟수로 오름차순하여 출력하세요.
+SELECT A.ACCOUNT_ID, COUNT(T.TRANSACTION_ID) TRANSACTION_COUNT
+FROM ACCOUNTS A
+LEFT OUTER JOIN TRANSACTIONS T
+  ON A.ACCOUNT_ID = T.ACCOUNT_ID
+GROUP BY A.ACCOUNT_ID
+ORDER BY TRANSACTION_COUNT;
+
+--7. 특정 기간의 고객별 총 거래 내역
+--2024년 1월 1일부터 2025년 12월 31일까지 발생한 거래 데이터를 기준으로 고객별 총 거래 금액을 계산하세요. 결과는 거래 금액이 높은 순으로 정렬하고, 상위 10명의 고객만 조회하세요.
+SELECT * FROM (
+  SELECT C.NAME, SUM(T.AMOUNT) CUSTOMER_AMOUNT
+  FROM CUSTOMERS C
+  LEFT OUTER JOIN ACCOUNTS A
+    ON C.CUSTOMER_ID = A.CUSTOMER_ID
+  LEFT OUTER JOIN TRANSACTIONS T
+    ON A.ACCOUNT_ID = T.ACCOUNT_ID
+  WHERE T.TRANSACTION_DATE BETWEEN TO_DATE('2024-01-01'8., 'YYYY-MM-DD')
+    AND TO_DATE('2025-12-31', 'YYYY-MM-DD')
+  GROUP BY C.CUSTOMER_ID, C.NAME
+  ORDER BY CUSTOMER_AMOUNT DESC NULLS LAST
+)
+WHERE ROWNUM <= 10;
+
+--8. 급여가 NULL인 직원
+--급여 정보가 없는 직원의 이름과 부서 이름을 조회하세요.
+SELECT E.NAME, D.DEPARTMENT_NAME
+FROM EMPLOYEES E
+LEFT OUTER JOIN DEPARTMENTS D
+  ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+WHERE E.SALARY IS NULL;
+
+--9. 고객별 가장 높은 대출 금액 조회
+--각 고객이 받은 대출 중 가장 높은 대출 금액을 조회하세요. 최대 대출 금액이 높은 순으로 정렬하고, 상위 15명의 데이터를 출력하세요.
+SELECT * FROM (
+  SELECT C.NAME, MAX(L.AMOUNT) MAX_AMOUNT
+  FROM CUSTOMERS C, LOANS L
+  WHERE C.CUSTOMER_ID = L.CUSTOMER_ID
+  GROUP BY C.NAME, C.CUSTOMER_ID
+  ORDER BY MAX_AMOUNT DESC
+)
+WHERE ROWNUM <= 15;
+
+--10. 특정 급여 구간과 부서별 직원 분포
+--급여가 7000 이상 15000 이하인 직원 데이터를 기준으로, 각 부서별 직원 수를 계산하세요. 직원 수가 5명 이상인 부서만 출력하고, 직원 수가 많은 순으로 정렬하세요.
+SELECT D.DEPARTMENT_NAME, COUNT(E.DEPARTMENT_ID) AS COUNT_DEPARTMENT
+FROM EMPLOYEES E
+LEFT OUTER JOIN DEPARTMENTS D
+  ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+WHERE E.SALARY BETWEEN 7000 AND 15000
+GROUP BY D.DEPARTMENT_NAME
+HAVING COUNT(E.DEPARTMENT_ID) >= 5
+ORDER BY COUNT_DEPARTMENT DESC;
