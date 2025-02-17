@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="servlet.booksearch">
+    <select id="selectByKeyword" parameterType="Map" resultType="org.example.booksearchservletproject.vo.BookVO">
+        <![CDATA[
+        SELECT bisbn, btitle, bprice
+        FROM book
+        WHERE btitle LIKE '%' || #{keyword} || '%'
+          AND bprice <= #{price}
+        ]]>
+    </select>
+
+    <select id="selectByISBN" parameterType="String" resultType="org.example.booksearchservletproject.vo.BookVO">
+        <![CDATA[
+        SELECT bisbn, btitle, bdate, bpage, bprice, bauthor, btranslator, bpublisher
+        FROM book
+        WHERE bisbn = #{bisbn}
+        ]]>
+    </select>
+</mapper>
