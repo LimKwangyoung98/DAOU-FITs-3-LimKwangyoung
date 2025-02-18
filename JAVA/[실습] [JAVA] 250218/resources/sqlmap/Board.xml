@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="servlet.board">
+    <select id="select" resultType="org.example.boardproject.vo.BoardVO">
+        <![CDATA[
+        SELECT board_id, title, writer, created_at
+        FROM boardtbl
+        ]]>
+    </select>
+
+    <select id="selectById" parameterType="String" resultType="org.example.boardproject.vo.BoardVO">
+        <![CDATA[
+        SELECT board_id, title, content, member_id, writer, created_at
+        FROM boardtbl
+        WHERE board_id = #{boardId}
+        ]]>
+    </select>
+
+    <insert id="create" parameterType="org.example.boardproject.vo.BoardVO">
+        INSERT INTO boardtbl (board_id, title, content, member_id, writer, created_at)
+        VALUES (
+                   SEQ_BOARD.NEXTVAL, #{title}, #{content}, #{member_id}, #{writer}, SYSDATE
+               )
+    </insert>
+
+</mapper>
