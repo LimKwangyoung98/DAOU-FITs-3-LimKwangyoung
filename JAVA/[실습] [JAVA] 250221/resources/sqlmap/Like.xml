@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="servlet.like">
+    <select id="getIsLike" parameterType="map" resultType="org.example.postproject.vo.LikeVO">
+        <![CDATA[
+        SELECT like_id AS likeId, post_id AS postId, user_id AS userId
+        FROM likes
+        WHERE post_id = #{postId}
+          AND user_id = #{userId}
+        ]]>
+    </select>
+    <insert id="like" parameterType="map">
+        <![CDATA[
+        INSERT INTO likes (like_id, post_id, user_id)
+        VALUES (like_seq.NEXTVAL, #{postId}, #{userId})
+        ]]>
+    </insert>
+    <update id="increaseLikeCnt" parameterType="map">
+        <![CDATA[
+        UPDATE posts
+        SET like_count = like_count + 1
+        WHERE post_id = #{postId}
+        ]]>
+    </update>
+    <delete id="unlike" parameterType="map">
+        <![CDATA[
+        DELETE FROM likes
+        WHERE post_id = #{postId}
+          AND user_id = #{userId}
+        ]]>
+    </delete>
+    <update id="decreaseLikeCnt" parameterType="map">
+        <![CDATA[
+        UPDATE posts
+        SET like_count = like_count - 1
+        WHERE post_id = #{postId}
+        ]]>
+    </update>
+</mapper>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+        "-//mybatis.org/DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="servlet.comment">
+    <update id="increaseViewCountByPostId" parameterType="int">
+        <![CDATA[
+        UPDATE posts
+        SET view_count = view_count + 1
+        WHERE post_id = #{postId}
+        ]]>
+    </update>
+
+    <select id="getCommentsByPostId" parameterType="int" resultType="org.example.postproject.vo.CommentVO">
+        <![CDATA[
+        SELECT c.comment_id AS commentId, c.post_id AS postId, c.user_id AS userId, u.name, c.content, c.created_at AS createdAt
+        FROM comments c
+        JOIN users u
+            ON c.user_id = u.user_id
+        WHERE c.post_id = #{postId}
+        ]]>
+    </select>
+    <insert id="createComment" parameterType="map">
+        <![CDATA[
+        INSERT INTO comments (comment_id, post_id, user_id, content)
+        VALUES (comment_seq.NEXTVAL, #{postId}, #{userId}, #{content})
+        ]]>
+    </insert>
+    <delete id="deleteComment" parameterType="int">
+        <![CDATA[
+        DELETE comments
+        WHERE comment_id = #{commentId}
+        ]]>
+    </delete>
+</mapper>
